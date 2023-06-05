@@ -263,7 +263,7 @@ kubectl -n app-system port-forward service/bff 9090:80
 4. 模拟调用链路 通过 bff 服务调用 backend 服务
 
 ```shell
-curl -v -H  http://127.0.0.1:9090/service\?services\=backend
+curl -v http://127.0.0.1:9090/service\?services\=backend
 
 {
   "args": {
