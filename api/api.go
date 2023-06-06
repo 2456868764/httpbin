@@ -16,10 +16,57 @@ import (
 )
 
 var defaultTraceHeaders = []string{
-	"X-Ot-Span-Context", "X-Request-Id",
+	// All applications should propagate x-request-id. This header is
+	// included in access log statements and is used for consistent trace
+	// sampling and log sampling decisions in Istio.
+	"X-Request-Id",
+
+	// Lightstep tracing header. Propagate this if you use lightstep tracing
+	// in Istio (see
+	// https://istio.io/latest/docs/tasks/observability/distributed-tracing/lightstep/)
+	// Note: this should probably be changed to use B3 or W3C TRACE_CONTEXT.
+	// Lightstep recommends using B3 or TRACE_CONTEXT and most application
+	// libraries from lightstep do not support x-ot-span-context.
+	"X-Ot-Span-Context",
+
+	// Datadog tracing header. Propagate these headers if you use Datadog
+	// tracing.
+	"x-datadog-trace-id",
+	"x-datadog-parent-id",
+	"x-datadog-sampling-priority",
+
+	// b3 trace headers. Compatible with Zipkin, OpenCensusAgent, and
+	// Stackdriver Istio configurations. Commented out since they are
+	// propagated by the OpenTracing tracer above.
 	"X-B3-TraceId", "X-B3-SpanId", "X-B3-ParentSpanId", "X-B3-Sampled", "X-B3-Flags",
+
+	// Jager
 	"uber-trace-id",
-	"jwt", "Authorization",
+
+	// Grpc binary trace context. Compatible with OpenCensusAgent nad
+	// Stackdriver Istio configurations.
+	"grpc-trace-bin",
+
+	// W3C Trace Context. Compatible with OpenCensusAgent and Stackdriver Istio
+	// configurations.
+	"traceparent",
+	"tracestate",
+
+	// Cloud trace context. Compatible with OpenCensusAgent and Stackdriver Istio
+	// configurations.
+	"x-cloud-trace-context",
+
+	// SkyWalking trace headers.
+	"sw8",
+
+	// Context and session specific headers
+	"cookie", "jwt", "Authorization",
+
+	// Application-specific headers to forward.
+	"end-user",
+	"user-agent",
+
+	// httpbin headers
 	"X-Httpbin-Trace-Host",
 	"X-Httpbin-Trace-Service",
 }
