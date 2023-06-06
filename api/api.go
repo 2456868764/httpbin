@@ -230,9 +230,9 @@ func traceHttpCall(c *gin.Context, req *http.Request, url string, fn func(req *h
 	if err != nil {
 	}
 	reqSpan.SetComponent(2)
-	reqSpan.SetSpanLayer(v3.SpanLayer_RPCFramework) // rpc 调用
+	reqSpan.SetSpanLayer(v3.SpanLayer_Http) // rpc 调用
 	resp, err2 := fn(req)
-	reqSpan.Tag(go2sky.TagHTTPMethod, http.MethodPost)
+	reqSpan.Tag(go2sky.TagHTTPMethod, http.MethodGet)
 	reqSpan.Tag(go2sky.TagURL, url)
 	reqSpan.End()
 	return resp, err2
