@@ -80,6 +80,10 @@ func Anything(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func Ping(c *gin.Context) {
+	c.JSON(http.StatusOK, "pong")
+}
+
 func HostName(c *gin.Context) {
 	response := utils.GetHostName()
 	c.JSON(http.StatusOK, response)

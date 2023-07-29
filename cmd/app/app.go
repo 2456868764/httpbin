@@ -9,6 +9,7 @@ import (
 	"httpbin/pkg/logs"
 	"httpbin/pkg/middleware"
 	"httpbin/pkg/options"
+	"httpbin/pkg/registry"
 )
 
 func NewAppCommand(ctx context.Context) *cobra.Command {
@@ -18,6 +19,7 @@ func NewAppCommand(ctx context.Context) *cobra.Command {
 		Long: `httpbin for mesh`,
 		Run: func(cmd *cobra.Command, args []string) {
 			logs.Infof("run with option:%+v", option)
+			option.Complete()
 			if err := Run(ctx, option); err != nil {
 				logs.Fatal(err)
 			}
@@ -38,10 +40,14 @@ func Run(ctx context.Context, option *options.Option) error {
 	// Start Log
 	middleware.StartLogger(r, option)
 
+	// Start Service Registry
+	registry.StartRegistry(ctx, option)
+
 	r.GET("/", api.Anything)
 	r.POST("/", api.Anything)
 	r.GET("/hostname", api.HostName)
 	r.GET("/headers", api.Headers)
+	r.GET("/ping", api.Ping)
 
 	// liveness, readiness, startup prob
 	r.GET("/prob/liveness", api.Healthz)
