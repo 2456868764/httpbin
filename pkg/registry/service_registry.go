@@ -3,9 +3,10 @@ package registry
 import (
 	"context"
 	"errors"
+	"time"
+
 	"httpbin/pkg/logs"
 	"httpbin/pkg/options"
-	"time"
 )
 
 type ServiceRegistry interface {
@@ -16,6 +17,9 @@ func ServiceRegistryFactory(option *options.Option) (ServiceRegistry, error) {
 	switch option.RegistryType {
 	case options.ServiceRegistryTypeConsul:
 		serviceRegistry, err := NewConsulServiceRegistry(option)
+		return serviceRegistry, err
+	case options.ServiceRegistryTypeNacos:
+		serviceRegistry, err := NewNacosServiceRegistry(option)
 		return serviceRegistry, err
 	default:
 		return nil, errors.New("not support registry type")

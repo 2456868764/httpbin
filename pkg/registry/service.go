@@ -2,9 +2,10 @@ package registry
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/google/uuid"
 	"httpbin/pkg/options"
-	"strings"
 )
 
 type ServiceProtocol string
@@ -37,7 +38,7 @@ func NewServiceFromOption(option *options.Option) (*Service, error) {
 		Port:         fmt.Sprintf("%d", option.ServerPort),
 		Ip:           option.ServerIp,
 		ServiceTags:  strings.Split(option.ServiceTags, ","),
-		ServiceMeta:  option.ServiceNeta,
+		ServiceMeta:  option.ServiceMeta,
 		CheckPath:    option.ServiceCheckPath,
 		Protocol:     Http,
 	}

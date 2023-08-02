@@ -3,17 +3,16 @@ package registry
 import (
 	"context"
 	"fmt"
-	"httpbin/pkg/logs"
 	"strconv"
 	"time"
 
 	consulapi "github.com/hashicorp/consul/api"
+	"httpbin/pkg/logs"
 	"httpbin/pkg/options"
 )
 
 const (
 	DefaultConsulTimeout = time.Second * 5
-	DefaultInitTimeout   = time.Second * 30
 )
 
 type ConsulServiceRegistry struct {
@@ -66,8 +65,9 @@ func (c *ConsulServiceRegistry) doRegistry(service *Service) error {
 	check := &consulapi.AgentServiceCheck{
 		HTTP:                           fmt.Sprintf("http://%s:%s%s", service.Ip, service.Port, service.CheckPath),
 		Timeout:                        "5s",
-		Interval:                       "10s",
+		Interval:                       "600s",
 		DeregisterCriticalServiceAfter: "60s",
+		//GRPC:                           fmt.Sprintf("%s:%s%s", service.Ip, service.Port, service.CheckPath),
 	}
 	registration.Check = check
 	err := c.client.Agent().ServiceRegister(registration)

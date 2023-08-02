@@ -27,7 +27,7 @@ type Option struct {
 	ServerIp              string
 	SamplingRate          float64
 	ServiceTags           string
-	ServiceNeta           map[string]string
+	ServiceMeta           map[string]string
 	ServiceCheckPath      string
 
 	ServiceName  string
@@ -42,6 +42,12 @@ type Option struct {
 	ConsulServerAddress string
 	ConsulDatacenter    string
 	ConsulAuthToken     string
+
+	NacosServerAddress string
+	NacosNamespaceId   string
+	NacosGroupName     string
+	NacosUsername      string
+	NacosPassword      string
 }
 
 func (o *Option) AddFlags(flags *pflag.FlagSet) {
@@ -56,6 +62,11 @@ func (o *Option) AddFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.ConsulDatacenter, "consul-data-center", "dc1", "Consul data center.")
 	flags.StringVar(&o.ConsulAuthToken, "consul-auth-token", "", "Consul server auth token")
 
+	flags.StringVar(&o.NacosServerAddress, "nacos-server-address", "", "nacos server address.")
+	flags.StringVar(&o.NacosNamespaceId, "nacos-namespace-id", "", "nacos namespace id")
+	flags.StringVar(&o.NacosGroupName, "nacos-group-name", "", "nacos group name")
+	flags.StringVar(&o.NacosUsername, "nacos-username", "", "nacos username")
+	flags.StringVar(&o.NacosPassword, "nacos-password", "", "nacos password")
 }
 
 func (o *Option) Complete() {
