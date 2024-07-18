@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	TraceSkyWalking  = "skywalking"
 	DefaultSubSystem = "App"
 	DefaultNameSpace = "default"
 	DefaultVersion   = "v1"
@@ -19,9 +18,15 @@ const (
 	ServiceRegistryTypeNone   = "none"
 )
 
+const (
+	Skywalking = "skywalking"
+	Zipkin     = "zipkin"
+)
+
 type Option struct {
 	TraceProvider         string
 	SkywalkingGrpcAddress string
+	ZipkinEndpointURL     string
 	ServerPort            uint32
 	ServerAddress         string
 	ServerIp              string
@@ -53,6 +58,7 @@ type Option struct {
 func (o *Option) AddFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.TraceProvider, "trace-provider", "", "Trace provider type")
 	flags.StringVar(&o.SkywalkingGrpcAddress, "skywalking-grpc-address", "", "Skywalking grpc address.")
+	flags.StringVar(&o.ZipkinEndpointURL, "zipkin-endpoint-url", "", "Zipkin http endpoint url.")
 	flags.Uint32Var(&o.ServerPort, "server-port", 80, "The server port binds to.")
 	flags.Float64Var(&o.SamplingRate, "sample-rate", 1.0, "Trace sample rate")
 	flags.StringVar(&o.ServiceCheckPath, "service-check-path", "/ping", "service check path.")
