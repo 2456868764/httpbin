@@ -9,8 +9,12 @@ import (
 
 	"github.com/SkyAPM/go2sky"
 	"github.com/gin-gonic/gin"
+	"github.com/openzipkin/zipkin-go"
+	"github.com/openzipkin/zipkin-go/propagation/b3"
 	"httpbin/pkg/logs"
+	"httpbin/pkg/middleware"
 	"httpbin/pkg/model"
+	"httpbin/pkg/options"
 	"httpbin/pkg/utils"
 	v3 "skywalking.apache.org/repo/goapi/collect/language/agent/v3"
 )
@@ -153,7 +157,7 @@ func ReponseAnyString(c *gin.Context) {
 	c.JSON(http.StatusOK, model.ResponseAny{Code: 1, Data: "hello"})
 }
 
-func Service(c *gin.Context) {
+func Service(c *gin.Context, option *options.Option) {
 	nextServices := c.Query("services")
 	if len(nextServices) == 0 {
 		// Simulate business call
@@ -213,14 +217,25 @@ func Service(c *gin.Context) {
 		}
 		return resp, err
 	}
-	resp, err := traceHttpCall(c, req, nextUrl, fn)
+
+	var resp *http.Response
+	if option.TraceProvider == options.Skywalking {
+		resp, err = traceHttpCallSkywalking(c, req, nextUrl, fn)
+	}
+	if option.TraceProvider == options.Zipkin {
+		resp, err = traceHttpCallZipkin(c, req, nextUrl, fn)
+	}
+	if err != nil {
+		logs.Errorf("execute traceHttpCall failed: %v", err)
+	}
+
 	var bodyBytes []byte
 	bodyBytes, _ = io.ReadAll(resp.Body)
 	c.Header("Content-Type", "application/json")
 	c.String(http.StatusOK, string(bodyBytes))
 }
 
-func traceHttpCall(c *gin.Context, req *http.Request, url string, fn func(req *http.Request) (*http.Response, error)) (*http.Response, error) {
+func traceHttpCallSkywalking(c *gin.Context, req *http.Request, url string, fn func(req *http.Request) (*http.Response, error)) (*http.Response, error) {
 	tracer := go2sky.GetGlobalTracer()
 	if tracer == nil {
 		resp, err := fn(req)
@@ -240,5 +255,23 @@ func traceHttpCall(c *gin.Context, req *http.Request, url string, fn func(req *h
 	reqSpan.Tag(go2sky.TagURL, url)
 	reqSpan.End()
 	return resp, err2
+}
 
+func traceHttpCallZipkin(c *gin.Context, req *http.Request, url string, fn func(req *http.Request) (*http.Response, error)) (*http.Response, error) {
+	tracer := middleware.ZipkinGlobalTracer
+	if tracer == nil {
+		resp, err := fn(req)
+		return resp, err
+	}
+
+	reqSpan, _ := tracer.StartSpanFromContext(c.Request.Context(), "invoke")
+	err := b3.InjectHTTP(req)(reqSpan.Context())
+	if err != nil {
+		return nil, err
+	}
+	resp, err2 := fn(req)
+	zipkin.TagHTTPMethod.Set(reqSpan, c.Request.Method)
+	zipkin.TagHTTPUrl.Set(reqSpan, url)
+	reqSpan.Finish()
+	return resp, err2
 }

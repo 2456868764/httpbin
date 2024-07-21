@@ -38,19 +38,19 @@ GET    /service                  --> httpbin/api.Service (4 handlers)
 ````
 ## 支持功能
 
-1. 支持 skywalking 调用链路跟踪
+1. 支持 SkyWalking、Zipkin 调用链路跟踪
 2. 支持 HTTP 接口 /metrics 指标输出
-3. Readiness,Liveness,Startup 探针
+3. Readiness、Liveness、Startup 探针
 4. 通过 /service?services=middle,backend 来模拟调用链路
 
 ## 待支持功能
 
 1. 支持日志集成 Trace
-2. 接入 opentelemetry & jager
-3. grafana metric 看板
-4. 基于 isito 流量管理样例
+2. 接入 OpenTelemetry & Jaeger
+3. Grafana metric 看板
+4. 基于 Isito 流量管理样例
 5. 其他 httpbin 原始接口迁移
-6. 接入 nacos 服务发现
+6. 接入 Nacos 服务发现
 
 
 # 使用
@@ -58,7 +58,7 @@ GET    /service                  --> httpbin/api.Service (4 handlers)
 ## 镜像下载
 
 ```shell
-docker pull 2456868764/httpbin:1.0.0
+docker pull cr7258/httpbin:v1
 ```
 
 ## 基本使用
@@ -233,13 +233,15 @@ app_response_size_bytes_count{instance="basic-6d6969cf9c-llzcp",service="basic"}
 
 ## 调用链路使用
 
+### SkyWalking
+
 1. 部署
 
 ```shell
 kubectl apply -f deploy/skywalking.yaml
-kubectl apply -f deploy/app.yaml
+kubectl apply -f deploy/app-skywalking.yaml
 ```
-2. 检查POD情况
+2. 检查 Pod 情况
 
 ```shell
 kubectl get pods -n app-system
@@ -253,7 +255,7 @@ skywalking-oap-dashboard-65f496ccc9-zfrsd   1/1     Running   1          23h
 skywalking-oap-server-859694656b-7s569      1/1     Running   1          23h
 
 ```
-3. skywalking dashboard 和 bff 服务端口转发
+3. SkyWalking dashboard 和 bff 服务端口转发
 
 ```shell
 kubectl -n op-system port-forward service/skywalking-oap-dashboard 8080:8080
@@ -336,22 +338,109 @@ curl -v http://127.0.0.1:9090/service\?services\=backend
 - "x-httpbin-trace-host": "bff-756955bb86-465zl/backend-6b9549bc64-ggpws"
 - "x-httpbin-trace-service": "bff/backend"
 
-skywalking dashboard 调用链路如下
+SkyWalking dashboard 的调用链路如下：
 
 ![skywalking.png](images/skywalking.png)
 
+### Zipkin
 
+1. 部署
 
+```shell
+kubectl apply -f deploy/zipkin.yaml
+kubectl apply -f deploy/app-zipkin.yaml
+```
 
+2. 检查 Pod 情况
 
+```shell
+kubectl get pods -n app-system
+NAME                       READY   STATUS    RESTARTS   AGE
+backend-85d757cf55-9fndf   1/1     Running   0          37s
+middle-7bc5b548bb-nbv7p    1/1     Running   0          37s
+bff-cb44846fc-b9498        1/1     Running   0          37s
 
+kubectl get pods -n zipkin
+NAME                    READY   STATUS    RESTARTS   AGE
+zipkin-7dc6bbcb-gqs2q   1/1     Running   0          75s
 
+```
+3. Zipkin dashboard 和 bff 服务端口转发
 
+```shell
+kubectl -n zipkin port-forward service/zipkin 9411:9411
+kubectl -n app-system port-forward service/bff 9090:80
+```
 
+4. 模拟调用链路 通过 bff 服务调用 backend 服务
 
+```shell
+curl -v "http://127.0.0.1:9090/service?services=middle,backend"
 
+{
+  "args": {},
+  "form": {},
+  "headers": {
+    "accept-encoding": "gzip",
+    "user-agent": "Go-http-client/1.1,Go-http-client/1.1,curl/8.6.0",
+    "x-b3-parentspanid": "6bdef451db01ae35,25663ac29162e6c1",
+    "x-b3-sampled": "1,1",
+    "x-b3-spanid": "4edb277843b00135,4f96de60f92193af",
+    "x-b3-traceid": "25663ac29162e6c1,25663ac29162e6c1",
+    "x-httpbin-trace-host": "bff-678768bd7b-qkphq/middle-8bd667d7-2gwln/backend-6b545bc774-jc69x",
+    "x-httpbin-trace-service": "bff/middle/backend"
+  },
+  "method": "GET",
+  "origin": "",
+  "url": "/",
+  "envs": {
+    "BACKEND_PORT": "tcp://10.43.185.213:80",
+    "BACKEND_PORT_80_TCP": "tcp://10.43.185.213:80",
+    "BACKEND_PORT_80_TCP_ADDR": "10.43.185.213",
+    "BACKEND_PORT_80_TCP_PORT": "80",
+    "BACKEND_PORT_80_TCP_PROTO": "tcp",
+    "BACKEND_SERVICE_HOST": "10.43.185.213",
+    "BACKEND_SERVICE_PORT": "80",
+    "BACKEND_SERVICE_PORT_HTTP": "80",
+    "BFF_PORT": "tcp://10.43.235.31:80",
+    "BFF_PORT_80_TCP": "tcp://10.43.235.31:80",
+    "BFF_PORT_80_TCP_ADDR": "10.43.235.31",
+    "BFF_PORT_80_TCP_PORT": "80",
+    "BFF_PORT_80_TCP_PROTO": "tcp",
+    "BFF_SERVICE_HOST": "10.43.235.31",
+    "BFF_SERVICE_PORT": "80",
+    "BFF_SERVICE_PORT_HTTP": "80",
+    "HOME": "/root",
+    "HOSTNAME": "backend-6b545bc774-jc69x",
+    "KUBERNETES_PORT": "tcp://10.43.0.1:443",
+    "KUBERNETES_PORT_443_TCP": "tcp://10.43.0.1:443",
+    "KUBERNETES_PORT_443_TCP_ADDR": "10.43.0.1",
+    "KUBERNETES_PORT_443_TCP_PORT": "443",
+    "KUBERNETES_PORT_443_TCP_PROTO": "tcp",
+    "KUBERNETES_SERVICE_HOST": "10.43.0.1",
+    "KUBERNETES_SERVICE_PORT": "443",
+    "KUBERNETES_SERVICE_PORT_HTTPS": "443",
+    "MIDDLE_PORT": "tcp://10.43.222.228:80",
+    "MIDDLE_PORT_80_TCP": "tcp://10.43.222.228:80",
+    "MIDDLE_PORT_80_TCP_ADDR": "10.43.222.228",
+    "MIDDLE_PORT_80_TCP_PORT": "80",
+    "MIDDLE_PORT_80_TCP_PROTO": "tcp",
+    "MIDDLE_SERVICE_HOST": "10.43.222.228",
+    "MIDDLE_SERVICE_PORT": "80",
+    "MIDDLE_SERVICE_PORT_HTTP": "80",
+    "NODE_NAME": "k3d-zipkin-demo-server-0",
+    "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "POD_IP": "10.42.0.78",
+    "POD_NAME": "backend-6b545bc774-jc69x",
+    "POD_NAMESPACE": "app-system",
+    "SERVICE_ACCOUNT": "backend",
+    "SERVICE_NAME": "backend",
+    "VERSION": "v1"
+  },
+  "host_name": "backend-6b545bc774-jc69x",
+  "body": ""
+}
+```
+Zipkin dashboard 的调用链路如下：
 
-
-
-
-
+![zipkin.png](images/zipkin.png)

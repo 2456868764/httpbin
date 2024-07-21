@@ -49,8 +49,8 @@ spec:
     spec:
       serviceAccountName: bff
       containers:
-        - image: docker.io/2456868764/httpbin:1.0.0
-          imagePullPolicy: IfNotPresent
+        - image: docker.io/cr7258/httpbin:v1
+          imagePullPolicy: Always
           name: bff
           ports:
             - containerPort: 80
@@ -96,9 +96,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.serviceAccountName
-
-
-
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -146,8 +143,8 @@ spec:
     spec:
       serviceAccountName: backend
       containers:
-        - image: docker.io/2456868764/httpbin:1.0.0
-          imagePullPolicy: IfNotPresent
+        - image: docker.io/cr7258/httpbin:v1
+          imagePullPolicy: Always
           name: backend
           ports:
             - containerPort: 80

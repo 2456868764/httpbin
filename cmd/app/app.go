@@ -34,7 +34,12 @@ func NewAppCommand(ctx context.Context) *cobra.Command {
 func Run(ctx context.Context, option *options.Option) error {
 	r := gin.New()
 	// Start Trace
-	middleware.StartSkywalkingTracer(r, option)
+	if option.TraceProvider == options.Skywalking {
+		middleware.StartSkywalkingTracer(r, option)
+	}
+	if option.TraceProvider == options.Zipkin {
+		middleware.StartZipkinTracer(r, option)
+	}
 	// Start Metric
 	middleware.StartMetric(r, option)
 	// Start Log
@@ -64,7 +69,9 @@ func Run(ctx context.Context, option *options.Option) error {
 	r.GET("/data/string", api.ReponseAnyString)
 
 	// Service call
-	r.GET("/service", api.Service)
+	r.GET("/service", func(c *gin.Context) {
+		api.Service(c, option)
+	})
 
 	r.Run(option.ServerAddress)
 
