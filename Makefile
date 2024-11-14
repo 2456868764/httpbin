@@ -13,7 +13,7 @@ BUILDDATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 LDFLAGS = ""
 
 # Images management
-REGISTRY ?= docker.io
+REGISTRY ?= registry.cn-hangzhou.aliyuncs.com
 REGISTRY_NAMESPACE?= 2456868764
 REGISTRY_USER_NAME?=""
 REGISTRY_PASSWORD?=""
