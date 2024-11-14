@@ -43,6 +43,8 @@ GET    /service                  --> httpbin/api.Service (4 handlers)
 3. Readiness、Liveness、Startup 探针
 4. 通过 /service?services=middle,backend 来模拟调用链路
 5. grpc 接口
+6. 支持 Nacos 服务发现
+7. 支持 Consul 服务发现
 
 ## 待支持功能
 
@@ -51,7 +53,6 @@ GET    /service                  --> httpbin/api.Service (4 handlers)
 3. Grafana metric 看板
 4. 基于 Isito 流量管理样例
 5. 其他 httpbin 原始接口迁移
-6. 接入 Nacos 服务发现
 
 
 # 使用
