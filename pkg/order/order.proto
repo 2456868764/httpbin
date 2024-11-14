@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package order;
+
+
+option go_package = "order/";
+option java_multiple_files = true;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+message Hello {
+  string name = 1;
+}
+
+
+message Order {
+  string id = 1;
+  repeated string items = 2;
+  string description = 3;
+  float price = 4;
+
+  enum AddressType {
+    HOME = 0;
+    WORK = 1;
+  }
+
+  message Address {
+    string address = 1;
+    AddressType type = 2;
+  }
+
+  repeated Address addresses = 5;
+
+  google.protobuf.Timestamp last_updated = 6;
+
+}
+
+message CombinedShipment {
+  string id = 1;
+  string status = 2;
+  repeated Order orderList = 3;
+}
+
+service OrderManagement {
+  rpc sayHello(Hello) returns (google.protobuf.StringValue);
+  rpc addOrder(Order) returns (google.protobuf.StringValue);
+  rpc getOrder(google.protobuf.StringValue) returns (Order);
+  rpc searchOrders(google.protobuf.StringValue) returns (stream Order);
+  rpc updateOrders(stream Order) returns (google.protobuf.StringValue);
+  rpc processOrders(stream google.protobuf.StringValue)
+      returns (stream CombinedShipment);
+}
+
+

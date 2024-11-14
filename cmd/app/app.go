@@ -3,13 +3,19 @@ package app
 import (
 	"context"
 	"flag"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/nacos-group/nacos-sdk-go/v2/common/logger"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"httpbin/api"
 	"httpbin/pkg/logs"
 	"httpbin/pkg/middleware"
 	"httpbin/pkg/options"
+	pb "httpbin/pkg/order"
 	"httpbin/pkg/registry"
+	"net"
 )
 
 func NewAppCommand(ctx context.Context) *cobra.Command {
@@ -73,7 +79,29 @@ func Run(ctx context.Context, option *options.Option) error {
 		api.Service(c, option)
 	})
 
+	go func() {
+		if runErr := InitGrpc(ctx, option); runErr != nil {
+			logger.Errorf("grpc serve failed with err: %v", runErr)
+		}
+	}()
 	r.Run(option.ServerAddress)
+	return nil
+}
 
+func InitGrpc(ctx context.Context, option *options.Option) error {
+	if option.GrpcEnable {
+		logger.Infof("start grpc serve on port: %d", option.GrpcPort)
+		s := grpc.NewServer()
+		pb.RegisterOrderManagementServer(s, &OrderManagementImpl{})
+		// Register reflection service on gRPC server.
+		reflection.Register(s)
+		lit, err := net.Listen("tcp", fmt.Sprintf(":%d", option.GrpcPort))
+		if err != nil {
+			return err
+		}
+		if err2 := s.Serve(lit); err2 != nil {
+			return err2
+		}
+	}
 	return nil
 }
