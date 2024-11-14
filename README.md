@@ -13,7 +13,7 @@ httpbin 基于 Gin 开发，用于快速测试基于云原生微服务可观测�
 - Envoy & Istio
 - 服务发现
 
-# httpbin 1.0.0 版本
+# httpbin 1.0.1 版本
 
 ## 支持接口
 
@@ -59,7 +59,7 @@ GET    /service                  --> httpbin/api.Service (4 handlers)
 ## 镜像下载
 
 ```shell
-docker pull cr7258/httpbin:v1
+docker pull registry.cn-hangzhou.aliyuncs.com/2456868764/httpbin:v1.0.1
 ```
 
 ## 基本使用
