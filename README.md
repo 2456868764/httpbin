@@ -450,12 +450,12 @@ Zipkin dashboard 的调用链路如下：
 ## grpc 
 ### 激活 grpc 功能
 
-使用 --grpc-enable 参数开启 grpc 监听，--grpc-port 指定监听端口， 默认监听 9090 端口， protobuf 文件在 pkg/order/order.proto
+使用 --grpc-enable 参数开启 grpc 监听，--grpc-port 指定监听端口， 默认监听 9091 端口， protobuf 文件在 pkg/order/order.proto
 
 ### 测试
 
 ```shell
-grpcurl -plaintext 127.0.0.1:9090 list
+grpcurl -plaintext 127.0.0.1:9091 list
 
 grpc.reflection.v1.ServerReflection
 grpc.reflection.v1alpha.ServerReflection
@@ -463,7 +463,7 @@ order.OrderManagement
 ```
 
 ```shell        
-grpcurl -plaintext -d '{"name": "jun"}' 127.0.0.1:9090 order.OrderManagement/sayHello
+grpcurl -plaintext -d '{"name": "jun"}' 127.0.0.1:9091 order.OrderManagement/sayHello
 
 "Hello jun"
 ```

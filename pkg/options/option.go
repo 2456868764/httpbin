@@ -78,7 +78,7 @@ func (o *Option) AddFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.NacosPassword, "nacos-password", "", "nacos password")
 
 	flags.BoolVar(&o.GrpcEnable, "grpc-enable", true, "grpc enable")
-	flags.Uint32Var(&o.GrpcPort, "grpc-port", 9090, "grpc demo order port")
+	flags.Uint32Var(&o.GrpcPort, "grpc-port", 9091, "grpc demo order port")
 }
 
 func (o *Option) Complete() {
