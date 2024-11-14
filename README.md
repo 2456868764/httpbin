@@ -42,6 +42,7 @@ GET    /service                  --> httpbin/api.Service (4 handlers)
 2. 支持 HTTP 接口 /metrics 指标输出
 3. Readiness、Liveness、Startup 探针
 4. 通过 /service?services=middle,backend 来模拟调用链路
+5. grpc 接口
 
 ## 待支持功能
 
@@ -444,3 +445,25 @@ curl -v "http://127.0.0.1:9090/service?services=middle,backend"
 Zipkin dashboard 的调用链路如下：
 
 ![zipkin.png](images/zipkin.png)
+
+## grpc 
+### 激活 grpc 功能
+
+使用 --grpc-enable 参数开启 grpc 监听，--grpc-port 指定监听端口， 默认监听 9090 端口， protobuf 文件在 pkg/order/order.proto
+
+### 测试
+
+```shell
+grpcurl -plaintext 127.0.0.1:9090 list
+
+grpc.reflection.v1.ServerReflection
+grpc.reflection.v1alpha.ServerReflection
+order.OrderManagement
+```
+
+```shell        
+grpcurl -plaintext -d '{"name": "jun"}' 127.0.0.1:9090 order.OrderManagement/sayHello
+
+"Hello jun"
+```
+

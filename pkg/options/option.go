@@ -53,6 +53,9 @@ type Option struct {
 	NacosGroupName     string
 	NacosUsername      string
 	NacosPassword      string
+
+	GrpcEnable bool
+	GrpcPort   uint32
 }
 
 func (o *Option) AddFlags(flags *pflag.FlagSet) {
@@ -73,6 +76,9 @@ func (o *Option) AddFlags(flags *pflag.FlagSet) {
 	flags.StringVar(&o.NacosGroupName, "nacos-group-name", "", "nacos group name")
 	flags.StringVar(&o.NacosUsername, "nacos-username", "", "nacos username")
 	flags.StringVar(&o.NacosPassword, "nacos-password", "", "nacos password")
+
+	flags.BoolVar(&o.GrpcEnable, "grpc-enable", true, "grpc enable")
+	flags.Uint32Var(&o.GrpcPort, "grpc-port", 9090, "grpc demo order port")
 }
 
 func (o *Option) Complete() {
