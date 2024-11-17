@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -15,7 +17,10 @@ import (
 	"httpbin/pkg/options"
 	pb "httpbin/pkg/order"
 	"httpbin/pkg/registry"
+	"io/ioutil"
+	"log"
 	"net"
+	"net/http"
 )
 
 func NewAppCommand(ctx context.Context) *cobra.Command {
@@ -84,6 +89,11 @@ func Run(ctx context.Context, option *options.Option) error {
 			logger.Errorf("grpc serve failed with err: %v", runErr)
 		}
 	}()
+	go func() {
+		if runErr := InitHttps(ctx, r, option); runErr != nil {
+			logger.Errorf("https serve failed with err: %v", runErr)
+		}
+	}()
 	r.Run(option.ServerAddress)
 	return nil
 }
@@ -101,6 +111,52 @@ func InitGrpc(ctx context.Context, option *options.Option) error {
 		}
 		if err2 := s.Serve(lit); err2 != nil {
 			return err2
+		}
+	}
+	return nil
+}
+
+func InitHttps(ctx context.Context, engine *gin.Engine, option *options.Option) error {
+	if option.HttpsEnable {
+		logger.Infof("start https serve on port: %d", option.HttpsPort)
+		// 加载 CA 根证书
+		caCert, err := ioutil.ReadFile(option.CACertFile)
+		if err != nil {
+			logger.Errorf("Failed to read CA certificate: %v", err)
+			return err
+		}
+
+		caCertPool := x509.NewCertPool()
+		if ok := caCertPool.AppendCertsFromPEM(caCert); !ok {
+			logger.Errorf("Failed to add CA certificate to pool")
+			return err
+		}
+
+		// 配置 TLS
+		var tlsConfig *tls.Config
+		if option.MTLS {
+			tlsConfig = &tls.Config{
+				ClientCAs:  caCertPool,                     // 设置客户端信任的 CA
+				ClientAuth: tls.RequireAndVerifyClientCert, // 强制要求客户端证书
+			}
+		} else {
+			tlsConfig = &tls.Config{
+				ClientCAs:  caCertPool, // 设置客户端信任的 CA
+				ClientAuth: tls.NoClientCert,
+			}
+		}
+
+		// 创建 HTTPS 服务器
+		server := &http.Server{
+			Addr:      fmt.Sprintf(":%d", option.HttpsPort),
+			Handler:   engine,
+			TLSConfig: tlsConfig, // 配置 TLS
+		}
+
+		// 启动 HTTPS 服务器
+		if err := server.ListenAndServeTLS(option.TlsCertFile, option.TlsKeyFile); err != nil {
+			log.Fatalf("Failed to start server: %v", err)
+			return err
 		}
 	}
 	return nil
