@@ -56,6 +56,14 @@ type Option struct {
 
 	GrpcEnable bool
 	GrpcPort   uint32
+
+	HttpsEnable   bool
+	HttpsPort     uint32
+	CACertFile    string
+	TlsCertFile   string
+	TlsKeyFile    string
+	TlsServerName string
+	MTLS          bool
 }
 
 func (o *Option) AddFlags(flags *pflag.FlagSet) {
@@ -79,6 +87,15 @@ func (o *Option) AddFlags(flags *pflag.FlagSet) {
 
 	flags.BoolVar(&o.GrpcEnable, "grpc-enable", true, "grpc enable")
 	flags.Uint32Var(&o.GrpcPort, "grpc-port", 9091, "grpc demo order port")
+
+	flags.BoolVar(&o.HttpsEnable, "https-enable", false, "https enable")
+	flags.Uint32Var(&o.HttpsPort, "https-port", 443, "https port")
+	flags.StringVar(&o.CACertFile, "cacert", "", "CA cert file")
+	flags.StringVar(&o.TlsCertFile, "cert", "", "tls cert file")
+	flags.StringVar(&o.TlsKeyFile, "key", "", "tls key file")
+	flags.StringVar(&o.TlsServerName, "server-name", "", "tls server name")
+	flags.BoolVar(&o.MTLS, "mtls", false, "mtls enable")
+
 }
 
 func (o *Option) Complete() {
